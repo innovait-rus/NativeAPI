@@ -576,7 +576,7 @@ bool innNative::mGetAdditionalActions(tVariant* retVal, tVariant* xml)
 //---------------------------------------------------------------------------//
 bool innNative::mDoAdditionalAction(tVariant* retVal, tVariant* actionName)
 {
-	if (retVal != 0) {
+	if (retVal) {
 		TV_VT(retVal) = VTYPE_BOOL;
 		TV_BOOL(retVal) = true;
 	}
