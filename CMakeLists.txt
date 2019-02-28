@@ -13,7 +13,7 @@ SET(innNative_SRC
     stdafx.h
     )
 
-include_directories(${CMAKE_SOURCE_DIR}/../include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 SET (CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${CMAKE_SOURCE_DIR})
 if (UNIX)
