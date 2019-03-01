@@ -134,7 +134,6 @@ bool innNative::RegisterExtensionAs(WCHAR_T** wsExtensionName)
 //---------------------------------------------------------------------------//
 long innNative::GetNProps()
 { 
-    // You may delete next lines and add your own implementation code here
     return epLast;
 }
 //---------------------------------------------------------------------------//
@@ -190,18 +189,11 @@ bool innNative::GetPropVal(const long lPropNum, tVariant* pvarPropVal)
 { 
     switch(lPropNum)
     {
-    case epVersion:
-		if (m_iMemory->AllocMemory((void**)&pvarPropVal->pwstrVal, wcslen(extensionVersion) * sizeof(WCHAR_T)))
-		{
-			::convToShortWchar(&pvarPropVal->pwstrVal, extensionVersion);
-			pvarPropVal->strLen = wcslen(extensionVersion);
-			TV_VT(pvarPropVal) = VTYPE_PWSTR;
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+    case epVersion:	
+	{
+		setWStringToTVariant(pvarPropVal, extensionVersion);
+		return true;
+	}
     default:
         return false;
     }
@@ -331,8 +323,7 @@ long innNative::GetNParams(const long lMethodNum)
     return 0;
 }
 //---------------------------------------------------------------------------//
-bool innNative::GetParamDefValue(const long lMethodNum, const long lParamNum,
-                        tVariant *pvarParamDefValue)
+bool innNative::GetParamDefValue(const long lMethodNum, const long lParamNum,  tVariant *pvarParamDefValue)
 { 
     TV_VT(pvarParamDefValue)= VTYPE_EMPTY;
 
@@ -388,11 +379,11 @@ bool innNative::CallAsProc(const long lMethodNum, tVariant* paParams, const long
 //---------------------------------------------------------------------------//
 void innNative::setWStringToTVariant(tVariant *dest, const wchar_t* source) {
 	
-	uint32_t len = ::wcslen(source);
+	size_t len = ::wcslen(source)+1;
 
 	TV_VT(dest) = VTYPE_PWSTR;
 
-	if (m_iMemory->AllocMemory((void**)&dest->pwstrVal, ::wcslen(source) * sizeof(WCHAR_T)))
+	if (m_iMemory->AllocMemory((void**)&dest->pwstrVal, len * sizeof(WCHAR_T)))
 	convToShortWchar(&dest->pwstrVal, source, len);
 	dest->wstrLen = ::wcslen(source);
 }
@@ -401,8 +392,9 @@ bool innNative::mGetVersion(tVariant* retVal)
 {
 	if (retVal) {
 		setWStringToTVariant(retVal, extensionVersion);
+		return true;
 	}
-	return true;
+	return false;
 }
 //---------------------------------------------------------------------------//
 bool innNative::mGetDescription(tVariant* retVal, tVariant* name, tVariant* description, tVariant* equipmentType,
@@ -424,22 +416,25 @@ bool innNative::mGetDescription(tVariant* retVal, tVariant* name, tVariant* desc
 	TV_BOOL(mainDriverInstalled) = true;
 	setWStringToTVariant(getDownloadURL, L"");
 
-	
-	TV_VT(retVal) = VTYPE_BOOL;
-	TV_BOOL(retVal) = true;
-	
-	return true;
+	if (retVal) {
+		TV_VT(retVal) = VTYPE_BOOL;
+		TV_BOOL(retVal) = true;
+		return true;
+	}
+	return false;
 }
 //---------------------------------------------------------------------------//
-bool innNative::mGetLastError(tVariant* retVal, tVariant* errorDescription)
+bool innNative::mGetLastError(tVariant* retVal, tVariant* retDescription)
 {
-	setWStringToTVariant(errorDescription, L"No errors");
+	setWStringToTVariant(retDescription, L"Возвращаем последнюю ошибку");
 
-	if (retVal != 0) {
-		TV_VT(retVal) = VTYPE_INT;
-		TV_INT(retVal) = 0;
+	if (retVal) {
+		TV_VT(retVal) = VTYPE_I4;
+		TV_I4(retVal) = 0;
+		return true;
 	}
-	return true;
+	
+	return false;
 }
 //---------------------------------------------------------------------------//
 bool innNative::mGetParameters(tVariant* retVal, tVariant* xml)
@@ -464,11 +459,13 @@ bool innNative::mGetParameters(tVariant* retVal, tVariant* xml)
 		"</Settings>"
 	);
 
-	if (retVal != 0) {
+	if (retVal) {
 		TV_VT(retVal) = VTYPE_BOOL;
 		TV_BOOL(retVal) = true;
+
+		return true;
 	}
-	return true;
+	return false;
 }
 //---------------------------------------------------------------------------//
 bool innNative::mSetParameter(tVariant* retVal, tVariant* par, tVariant* val)
@@ -508,18 +505,21 @@ bool innNative::mOpen(tVariant* retVal, tVariant* par)
 	}
 
 	receiveInThread = true;
+	bool res;
 
 #if defined( __linux__ )
-    bool res = openThreadLinux(wPar);
+    res = openThreadLinux(wPar);
 #else
-    bool res = openThreadWindows(wPar);
+    res = openThreadWindows(wPar);
 #endif
 	if (retVal) {
 		TV_VT(retVal) = VTYPE_BOOL;
 		TV_BOOL(retVal) = res;
+
+		return res;
 	}
 
-	return res;
+	return false;
 }
 //---------------------------------------------------------------------------//
 bool innNative::mClose(tVariant* retVal, tVariant* par)
@@ -536,7 +536,6 @@ bool innNative::mClose(tVariant* retVal, tVariant* par)
 	}
 
 	receiveInThread = false;
-
 	bool res;
 
 #if defined( __linux__ )
@@ -545,10 +544,13 @@ bool innNative::mClose(tVariant* retVal, tVariant* par)
 	res = openThreadWindows(wPar);
 #endif
 
-	TV_VT(retVal) = VTYPE_BOOL;
-	TV_BOOL(retVal) = res;
+	if (retVal) {
+		TV_VT(retVal) = VTYPE_BOOL;
+		TV_BOOL(retVal) = res;
+		return res;
+	}
 	
-	return true;
+	return false;
 }
 //---------------------------------------------------------------------------//
 bool innNative::mDeviceTest(tVariant* retVal, tVariant* description, tVariant* demoModeIsActivated)
@@ -556,6 +558,7 @@ bool innNative::mDeviceTest(tVariant* retVal, tVariant* description, tVariant* d
 	if (retVal) {
 		TV_VT(retVal) = VTYPE_BOOL;
 		TV_BOOL(retVal) = true;
+		return true;
 	}
 	return false;
 }
@@ -570,6 +573,7 @@ bool innNative::mGetAdditionalActions(tVariant* retVal, tVariant* xml)
 	if (retVal) {
 		TV_VT(retVal) = VTYPE_BOOL;
 		TV_BOOL(retVal) = true;
+		return true;
 	}
 	return false;
 }
@@ -579,6 +583,7 @@ bool innNative::mDoAdditionalAction(tVariant* retVal, tVariant* actionName)
 	if (retVal) {
 		TV_VT(retVal) = VTYPE_BOOL;
 		TV_BOOL(retVal) = true;
+		return true;
 	}
 	return false;
 }
@@ -839,6 +844,8 @@ bool innNative::closeThreadWindows(wchar_t* par)
 		if (stopThRes != WAIT_OBJECT_0)
 			return false;
 	}
+
+	return true;
 }
 #endif
 
