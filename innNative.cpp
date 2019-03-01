@@ -507,11 +507,14 @@ bool innNative::mOpen(tVariant* retVal, tVariant* par)
 	receiveInThread = true;
 	bool res;
 
-#if defined( __linux__ )
-    res = openThreadLinux(wPar);
-#else
-    res = openThreadWindows(wPar);
-#endif
+	#if defined( __linux__ )
+		res = openThreadLinux(wPar);
+	#endif
+
+	#ifdef _WINDOWS
+		res = openThreadWindows(wPar);
+	#endif
+
 	if (retVal) {
 		TV_VT(retVal) = VTYPE_BOOL;
 		TV_BOOL(retVal) = res;
@@ -538,11 +541,13 @@ bool innNative::mClose(tVariant* retVal, tVariant* par)
 	receiveInThread = false;
 	bool res;
 
-#if defined( __linux__ )
-    res = closeThreadLinux(wPar);
-#else
-	res = openThreadWindows(wPar);
-#endif
+	#if defined( __linux__ )
+		res = closeThreadLinux(wPar);
+	#endif
+
+	#ifdef _WINDOWS
+		res = openThreadWindows(wPar);
+	#endif
 
 	if (retVal) {
 		TV_VT(retVal) = VTYPE_BOOL;
@@ -626,10 +631,6 @@ void innNative::SetLocale(const WCHAR_T* loc)
 {
 #if !defined( __linux__ ) && !defined(__APPLE__)
     _wsetlocale(LC_ALL, loc);
-#else
-    //We convert in char* char_locale
-    //also we establish locale
-    //setlocale(LC_ALL, char_locale);
 #endif
 }
 /////////////////////////////////////////////////////////////////////////////

@@ -3,10 +3,9 @@
 #include "ComponentBase.h"
 #include "AddInDefBase.h"
 #include "IMemoryManager.h"
-
 #include "stdafx.h"
 
-#if defined( __linux__ ) || defined(__APPLE__)
+#if defined( __linux__ )
 	#include <unistd.h>
 	#include <stdlib.h>
 	#include <fcntl.h>
@@ -14,7 +13,6 @@
 	#include <termios.h>
 	#include <pthread.h>
 	#include <iconv.h>
-
 #endif
 
 #include <stdio.h>
