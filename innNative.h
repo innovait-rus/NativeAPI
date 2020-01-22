@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <wchar.h>
 #include <string>
-
+#include <locale>
 ///////////////////////////////////////////////////////////////////////////////
 // class innNative
 class innNative : public IComponentBase
