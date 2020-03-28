@@ -546,7 +546,7 @@ bool innNative::mClose(tVariant* retVal, tVariant* par)
 	#endif
 
 	#ifdef _WINDOWS
-		res = openThreadWindows(wPar);
+		res = closeThreadWindows(wPar);
 	#endif
 
 	if (retVal) {
